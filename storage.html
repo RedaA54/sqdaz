@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storage Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .hover-scale:hover {
+      transform: scale(1.01);
+      transition: all 0.3s ease;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #2a3447;
+      border-radius: 9999px;
+      height: 8px;
+      position: relative;
+    }
+    .progress-bar-fill {
+      background-color: #00C4B4;
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body class="text-[#d1d5db]">
+  <div class="flex min-h-screen">
+    <!-- Sidebar Navigation -->
+    <div class="w-64 bg-gradient-to-b from-[#1e293b] to-[#2a3447] p-6 flex flex-col border-r border-gray-700">
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-[#00C4B4] tracking-tight">AI Agent Hub</h1>
+      </div>
+      <nav class="space-y-2 flex-1">
+        <h3 class="text-[#9ca3af] uppercase text-xs font-medium mb-3">Navigation</h3>
+        <a href="/" class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>🧑‍💻</span><span>My Agents</span>
+        </a>
+        <a href="/create-agent" class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>➕</span><span>Create Agent</span>
+        </a>
+       
+        <a href="/gpu" class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>💻</span><span>GPU</span>
+        </a>
+        <a href="/storage" class="w-full bg-[#00C4B4] text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-3">
+          <span>💾</span><span>Storage</span>
+        </a>
+        <button class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>🎮</span><span>Playground</span>
+        </button>
+        <h3 class="text-[#9ca3af] uppercase text-xs font-medium mt-6 mb-3">Resources</h3>
+        <button class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>📖</span><span>Explore (Coming Soon)</span>
+        </button>
+        <button class="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+          <span>📚</span><span>How to Use</span>
+        </button>
+      </nav>
+      <div class="text-[#9ca3af] text-xs mt-auto">
+        AI Agents Platform v1.0
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Top Bar -->
+      <header class="bg-gradient-to-r from-[#1e293b] to-[#2a3447] p-4 flex items-center justify-between border-b border-gray-700">
+        <nav class="flex space-x-6">
+          <a href="#" class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Home</a>
+          <a href="#" class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Explore</a>
+          <a href="#" class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Agents</a>
+          <a href="#" class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Bots</a>
+          <a href="#" class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Custom Solutions</a>
+        </nav>
+        <div class="flex items-center space-x-4">
+          <button class="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-2 px-4 rounded-lg transition">
+            Get Pro Plan
+          </button>
+          <div id="wallet-connect"></div>
+        </div>
+      </header>
+
+      <!-- Storage Management -->
+      <div class="p-6 flex-1">
+        <div class="mb-8 fade-in">
+          <h2 class="text-3xl font-bold text-[#00C4B4] mb-2">Storage Management</h2>
+          <p class="text-[#9ca3af]">
+            Create storage instances and upload files for your AI agents to read. Each user has a 500MB storage limit.
+          </p>
+        </div>
+        <div id="error-message" class="mb-4 text-red-400 fade-in hidden"></div>
+
+        <!-- Storage Usage Progress Bar -->
+        <div class="mb-8 fade-in">
+          <div class="flex justify-between mb-2">
+            <span class="text-[#9ca3af] font-medium">Storage Usage</span>
+            <span id="storage-usage-text" class="text-[#9ca3af] font-medium">0 MB / 500 MB</span>
+          </div>
+          <div class="progress-bar">
+            <div id="storage-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Create New Storage -->
+        <div class="glass rounded-xl p-6 mb-8 fade-in">
+          <h3 class="text-xl font-semibold text-[#00C4B4] mb-4">Create New Storage</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-[#9ca3af] text-sm font-medium mb-1">Storage Name</label>
+              <input
+                type="text"
+                id="storage-name"
+                class="w-full py-2 px-4 rounded-lg bg-[#2a3447] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#00C4B4] text-[#d1d5db]"
+                placeholder="Enter storage name"
+              />
+            </div>
+            <div>
+              <label class="block text-[#9ca3af] text-sm font-medium mb-1">Description (Optional)</label>
+              <textarea
+                id="storage-description"
+                class="w-full py-2 px-4 rounded-lg bg-[#2a3447] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#00C4B4] text-[#d1d5db]"
+                placeholder="Describe the storage"
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button
+                onclick="createStorage()"
+                class="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-2 px-6 rounded-lg transition"
+              >
+                Create Storage
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage List -->
+        <div class="glass rounded-xl p-6 fade-in">
+          <h3 class="text-xl font-semibold text-[#00C4B4] mb-4">My Storages</h3>
+          <div id="storage-list">
+            <!-- Storage items will be dynamically added here -->
+          </div>
+        </div>
+      </div>
+
+      <footer class="p-6 text-center text-[#9ca3af] text-sm">
+        <p>Powered by Ethereum & AI | © 2025 YourPlatform</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    let walletAddress = localStorage.getItem('walletAddress') || '';
+
+    // Wallet Connection Logic
+    function renderWalletConnect() {
+      const walletConnectDiv = document.getElementById('wallet-connect');
+      const shortenAddress = (address) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+
+      const connectWallet = async () => {
+        if (typeof window.ethereum === 'undefined') {
+          alert('Please install MetaMask to connect your wallet!');
+          return;
+        }
+
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          walletAddress = accounts[0];
+          localStorage.setItem('walletAddress', walletAddress);
+          renderWalletConnect();
+          fetchStorageUsage();
+          fetchStorages();
+        } catch (error) {
+          console.error('Error connecting wallet:', error);
+          alert('Failed to connect wallet. Please try again.');
+        }
+      };
+
+      const disconnectWallet = () => {
+        walletAddress = '';
+        localStorage.removeItem('walletAddress');
+        renderWalletConnect();
+        fetchStorageUsage();
+        fetchStorages();
+      };
+
+      walletConnectDiv.innerHTML = walletAddress
+        ? `
+          <span class="text-[#9ca3af] font-medium">${shortenAddress(walletAddress)}</span>
+          <button
+            onclick="(${disconnectWallet})()"
+            class="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium"
+          >
+            Disconnect
+          </button>
+        `
+        : `
+          <button
+            onclick="(${connectWallet})()"
+            class="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-1 px-3 rounded-lg transition"
+          >
+            Connect Wallet
+          </button>
+        `;
+
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (accounts.length > 0) {
+            walletAddress = accounts[0];
+            localStorage.setItem('walletAddress', walletAddress);
+          } else {
+            walletAddress = '';
+            localStorage.removeItem('walletAddress');
+          }
+          renderWalletConnect();
+          fetchStorageUsage();
+          fetchStorages();
+        });
+      }
+    }
+
+    // Fetch Storage Usage
+    async function fetchStorageUsage() {
+      if (!walletAddress) {
+        document.getElementById('storage-usage-text').textContent = '0 MB / 500 MB';
+        document.getElementById('storage-progress-bar').style.width = '0%';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/storage-usage?walletAddress=${walletAddress}`);
+        if (!response.ok) throw new Error('Failed to fetch storage usage');
+        const data = await response.json();
+        const usedMB = (data.used / (1024 * 1024)).toFixed(2); // Convert bytes to MB
+        const maxMB = (data.max / (1024 * 1024)).toFixed(2);
+        document.getElementById('storage-usage-text').textContent = `${usedMB} MB / ${maxMB} MB`;
+        document.getElementById('storage-progress-bar').style.width = `${data.percentage}%`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = `Error: ${err.message}`;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    }
+
+    // Create a New Storage
+    async function createStorage() {
+      if (!walletAddress) {
+        document.getElementById('error-message').textContent = 'Error: Please connect your wallet!';
+        document.getElementById('error-message').classList.remove('hidden');
+        return;
+      }
+
+      const name = document.getElementById('storage-name').value.trim();
+      const description = document.getElementById('storage-description').value.trim();
+      const errorMessage = document.getElementById('error-message');
+
+      if (!name) {
+        errorMessage.textContent = 'Error: Storage name is required!';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/storages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress, name, description }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create storage');
+        }
+
+        document.getElementById('storage-name').value = '';
+        document.getElementById('storage-description').value = '';
+        errorMessage.classList.add('hidden');
+        fetchStorages();
+      } catch (err) {
+        errorMessage.textContent = `Error: ${err.message}`;
+        errorMessage.classList.remove('hidden');
+      }
+    }
+
+    // Fetch Storages and Files
+    async function fetchStorages() {
+      if (!walletAddress) {
+        document.getElementById('storage-list').innerHTML = '<p class="text-[#9ca3af] text-center py-6">Please connect your wallet to view storages.</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/storages?walletAddress=${walletAddress}`);
+        if (!response.ok) throw new Error('Failed to fetch storages');
+        const storages = await response.json();
+
+        const storageList = document.getElementById('storage-list');
+        if (storages.length === 0) {
+          storageList.innerHTML = '<p class="text-[#9ca3af] text-center py-6">No storages found.</p>';
+          return;
+        }
+
+        storageList.innerHTML = '';
+        for (const storage of storages) {
+          const files = await fetchFiles(storage.id);
+          storageList.innerHTML += `
+            <div class="mb-6 p-4 rounded-lg bg-[#2a3447] hover:bg-[#3a4457] transition hover-scale">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="text-lg font-medium text-[#00C4B4]">${storage.name}</h4>
+                <button
+                  onclick="document.getElementById('file-input-${storage.id}').click()"
+                  class="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-1 px-3 rounded-lg transition"
+                >
+                  Upload File
+                </button>
+                <input
+                  type="file"
+                  id="file-input-${storage.id}"
+                  class="hidden"
+                  onchange="uploadFile(${storage.id}, this)"
+                />
+              </div>
+              <p class="text-[#9ca3af] text-sm mb-2">${storage.description || 'No description'}</p>
+              <p class="text-[#9ca3af] text-sm mb-2">Created: ${new Date(storage.createdAt).toLocaleString()}</p>
+              <div id="file-list-${storage.id}">
+                ${renderFiles(files)}
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = `Error: ${err.message}`;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    }
+
+    // Fetch Files for a Storage
+    async function fetchFiles(storageId) {
+      try {
+        const response = await fetch(`/api/storages/${storageId}/files?walletAddress=${walletAddress}`);
+        if (!response.ok) throw new Error('Failed to fetch files');
+        return await response.json();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = `Error: ${err.message}`;
+        document.getElementById('error-message').classList.remove('hidden');
+        return [];
+      }
+    }
+
+    // Render Files
+    function renderFiles(files) {
+      if (files.length === 0) {
+        return '<p class="text-[#9ca3af] text-sm">No files uploaded.</p>';
+      }
+      return files.map(file => `
+        <div class="flex justify-between items-center py-2 border-b border-gray-700">
+          <div>
+            <span class="text-[#d1d5db]">${file.filename}</span>
+            <span class="text-[#9ca3af] text-sm ml-2">(${(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+          </div>
+          <button
+            onclick="readFile(${file.id}, ${file.storageId})"
+            class="bg-[#2a3447] hover:bg-[#3a4457] text-[#9ca3af] font-medium py-1 px-3 rounded-lg transition"
+          >
+            Read with AI
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Upload a File
+    async function uploadFile(storageId, input) {
+      if (!input.files[0]) return;
+
+      const formData = new FormData();
+      formData.append('file', input.files[0]);
+      formData.append('walletAddress', walletAddress);
+
+      try {
+        const response = await fetch(`/api/storages/${storageId}/files`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to upload file');
+        }
+
+        fetchStorageUsage();
+        fetchStorages();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = `Error: ${err.message}`;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    }
+
+    // Read File with AI
+    async function readFile(fileId, storageId) {
+      try {
+        const response = await fetch(`/api/files/${fileId}/read?walletAddress=${walletAddress}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to read file');
+        }
+        const data = await response.json();
+        alert(`AI Summary:\n${data.summary}\n\nFull Content:\n${data.content}`);
+        fetchStorages();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('error-message').textContent = `Error: ${err.message}`;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    }
+
+    // Initial Load
+    renderWalletConnect();
+    fetchStorageUsage();
+    fetchStorages();
+  </script>
+</body>
+</html>

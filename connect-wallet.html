@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Wallet - AI Agent Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .hover-scale:hover {
+      transform: scale(1.01);
+      transition: all 0.3s ease;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="text-[#d1d5db] flex min-h-screen items-center justify-center">
+  <div className="glass rounded-xl p-8 fade-in max-w-md w-full text-center">
+    <h1 className="text-3xl font-bold text-[#00C4B4] mb-4">Connect Your Wallet</h1>
+    <p className="text-[#9ca3af] mb-6">Please connect your MetaMask wallet to access the AI Agent Hub.</p>
+    <button
+      id="connect-wallet-btn"
+      className="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-2 px-6 rounded-lg transition hover-scale"
+    >
+      Connect Wallet
+    </button>
+    <div id="error-message" className="mt-4 text-red-400 hidden"></div>
+  </div>
+
+  <script>
+    const connectWalletBtn = document.getElementById('connect-wallet-btn');
+    const errorMessage = document.getElementById('error-message');
+
+    connectWalletBtn.addEventListener('click', async () => {
+      if (typeof window.ethereum === 'undefined') {
+        errorMessage.textContent = 'Please install MetaMask to connect your wallet!';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        localStorage.setItem('walletAddress', address);
+        // Redirect to the dashboard
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Error connecting wallet:', error);
+        errorMessage.textContent = 'Failed to connect wallet. Please try again.';
+        errorMessage.classList.remove('hidden');
+      }
+    });
+
+    // If wallet is already connected, redirect to dashboard
+    if (localStorage.getItem('walletAddress')) {
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1e90ff;
+            --background-color: #f4f6f8;
+            --sidebar-width: 250px;
+            --card-hover: #f7f7f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            color: #333;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #0d1117;
+            color: white;
+            padding: 1.5rem 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 0.7rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: #161b22;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.with-sidebar {
+            margin-left: var(--sidebar-width);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* Dashboard grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .card:hover {
+            background-color: var(--card-hover);
+        }
+
+        /* Activity log */
+        .activity {
+            margin-top: 2rem;
+        }
+
+        .activity-list {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Dark mode toggle */
+        .theme-toggle {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle input {
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                height: 100%;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.visible {
+                transform: translateX(0);
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard" id="dashboard">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="nav-logo">Dashboard</div>
+            <ul class="nav-menu">
+                <li class="nav-item">🏠 Dashboard</li>
+                <li class="nav-item">📊 Analytics</li>
+                <li class="nav-item">📁 Files</li>
+                <li class="nav-item">⚙️ Settings</li>
+                <li class="nav-item">👤 Profile</li>
+            </ul>
+            <div class="theme-toggle">
+                <label>🌙 Dark Mode</label>
+                <input type="checkbox" id="themeToggle">
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Header -->
+            <div class="header">
+                <div class="hamburger" id="hamburger">&#9776;</div>
+                <h1>Welcome, User</h1>
+            </div>
+
+            <!-- Dashboard Cards -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Statistics</h2>
+                    <p>Current data overview</p>
+                </div>
+                <div class="card">
+                    <h2>Quick Actions</h2>
+                    <ul>
+                        <li>Create Report</li>
+                        <li>Upload File</li>
+                        <li>Edit Profile</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h2>Notifications</h2>
+                    <p>You have 3 new notifications</p>
+                </div>
+                <div class="card">
+                    <h2>Performance</h2>
+                    <p>System uptime: 99.8%</p>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="activity">
+                <div class="activity-list">
+                    <h3>Recent Activity</h3>
+                    <ul>
+                        <li>• Logged in today</li>
+                        <li>• Created new report</li>
+                        <li>• Modified dashboard settings</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar toggle for mobile
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (hamburger) {
+            hamburger.addEventListener('click', () => {
+                sidebar.classList.toggle('visible');
+            });
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark', themeToggle.checked);
+        });
+
+        // Responsive classes
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('visible');
+                mainContent.classList.add('with-sidebar');
+            } else {
+                mainContent.classList.remove('with-sidebar');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    </script>
+</body>
+</html>

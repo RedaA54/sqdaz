@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Management - AI Agent Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .hover-scale:hover {
+      transform: scale(1.01);
+      transition: all 0.3s ease;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="text-[#d1d5db]">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Wallet Connection Component
+    const WalletConnect = ({ setRedirect }) => {
+      const [walletAddress, setWalletAddress] = useState(localStorage.getItem('walletAddress') || '');
+
+      const disconnectWallet = () => {
+        setWalletAddress('');
+        localStorage.removeItem('walletAddress');
+        setRedirect(true);
+      };
+
+      const shortenAddress = (address) => {
+        if (!address) return '';
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+      };
+
+      useEffect(() => {
+        if (window.ethereum) {
+          window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length > 0) {
+              setWalletAddress(accounts[0]);
+              localStorage.setItem('walletAddress', accounts[0]);
+            } else {
+              disconnectWallet();
+            }
+          });
+        }
+      }, []);
+
+      return (
+        <div className="flex items-center space-x-2">
+          {walletAddress ? (
+            <>
+              <span className="text-[#9ca3af] font-medium">{shortenAddress(walletAddress)}</span>
+              <button
+                onClick={disconnectWallet}
+                className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium"
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <span className="text-[#9ca3af]">Wallet Not Connected</span>
+          )}
+        </div>
+      );
+    };
+
+    const GPUPage = () => {
+      const [gpus, setGpus] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [redirect, setRedirect] = useState(false);
+      const walletAddress = localStorage.getItem('walletAddress') || '';
+
+      useEffect(() => {
+        if (!walletAddress) {
+          setRedirect(true);
+          return;
+        }
+        fetchGpus();
+      }, []);
+
+      useEffect(() => {
+        if (redirect) {
+          window.location.href = '/connect-wallet';
+        }
+      }, [redirect]);
+
+      const fetchGpus = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(`/api/gpus?walletAddress=${walletAddress}`);
+          if (!response.ok) throw new Error('Failed to fetch GPUs');
+          const data = await response.json();
+          setGpus(data);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handlePurchase = async (gpuId, price) => {
+        if (price === 0) {
+          alert('This GPU is free and should already be available to you.');
+          return;
+        }
+
+        // Mock purchase confirmation
+        if (!confirm(`Are you sure you want to purchase this GPU for $${price}?`)) return;
+
+        try {
+          const response = await fetch('/api/gpus/purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, gpuId }),
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to purchase GPU');
+          }
+          alert('GPU purchased successfully!');
+          await fetchGpus();
+        } catch (err) {
+          setError(err.message);
+        }
+      };
+
+      if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+      if (error) return <div className="flex min-h-screen items-center justify-center text-red-400">Error: {error}</div>;
+
+      return (
+        <div className="flex min-h-screen">
+          {/* Sidebar Navigation */}
+          <div className="w-64 bg-gradient-to-b from-[#1e293b] to-[#2a3447] p-6 flex flex-col border-r border-gray-700">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-[#00C4B4] tracking-tight">AI Agent Hub</h1>
+            </div>
+            <nav className="space-y-2 flex-1">
+              <h3 className="text-[#9ca3af] uppercase text-xs font-medium mb-3">Navigation</h3>
+              <a href="/" className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>🧑‍💻</span><span>My Agents</span>
+              </a>
+              <a href="/create-agent" className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>➕</span><span>Create Agent</span>
+              </a>
+              <button className="w-full bg-[#00C4B4] text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-3">
+                <span>💻</span><span>GPU</span>
+              </button>
+              <a href="/storage" className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>💾</span><span>Storage</span>
+              </a>
+              <button className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>🎮</span><span>Playground</span>
+              </button>
+              <h3 className="text-[#9ca3af] uppercase text-xs font-medium mt-6 mb-3">Resources</h3>
+              <button className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>📖</span><span>Explore (Coming Soon)</span>
+              </button>
+              <button className="w-full text-[#9ca3af] py-2 px-4 rounded-lg flex items-center space-x-3 hover:bg-[#00C4B4] hover:text-white transition hover-scale">
+                <span>📚</span><span>How to Use</span>
+              </button>
+            </nav>
+            <div className="text-[#9ca3af] text-xs mt-auto">
+              AI Agents Platform v1.0
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Top Bar */}
+            <header className="bg-gradient-to-r from-[#1e293b] to-[#2a3447] p-4 flex items-center justify-between border-b border-gray-700">
+              <nav className="flex space-x-6">
+                <a href="#" className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Home</a>
+                <a href="#" className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Explore</a>
+                <a href="#" className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Agents</a>
+                <a href="#" className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Bots</a>
+                <a href="#" className="text-[#9ca3af] hover:text-[#00C4B4] transition font-medium">Custom Solutions</a>
+              </nav>
+              <div className="flex items-center space-x-4">
+                <button className="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-2 px-4 rounded-lg transition">
+                  Get Pro Plan
+                </button>
+                <WalletConnect setRedirect={setRedirect} />
+              </div>
+            </header>
+
+            {/* Main Content Area */}
+            <div className="p-6 flex-1">
+              <div className="mb-8 fade-in">
+                <h2 className="text-3xl font-bold text-[#00C4B4] mb-2">GPU Management</h2>
+                <p className="text-[#9ca3af]">
+                  Upgrade your AI agents with powerful GPUs to enhance performance.
+                </p>
+              </div>
+
+              {/* GPU List */}
+              <div className="glass rounded-xl mb-8 fade-in">
+                <h3 className="text-xl font-semibold text-[#00C4B4] mb-4 px-6 pt-6">Available GPUs</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                  {gpus.map(gpu => (
+                    <div key={gpu.id} className="glass rounded-lg p-4 hover-scale">
+                      <h4 className="text-lg font-semibold text-[#00C4B4]">{gpu.name}</h4>
+                      <p className="text-[#9ca3af] mb-2">{gpu.description}</p>
+                      <p className="text-[#d1d5db]"><strong>Max Agents:</strong> {gpu.maxAgents}</p>
+                      <p className="text-[#d1d5db]"><strong>Agents Using:</strong> {gpu.agentCount}</p>
+                      <p className="text-[#d1d5db] mb-4"><strong>Price:</strong> ${gpu.price.toFixed(2)}</p>
+                      {gpu.isPurchased ? (
+                        <span className="text-[#00C4B4] font-medium">Owned</span>
+                      ) : (
+                        <button
+                          onClick={() => handlePurchase(gpu.id, gpu.price)}
+                          className="bg-[#00C4B4] hover:bg-[#00b3a5] text-white font-medium py-2 px-4 rounded-lg transition"
+                        >
+                          Purchase
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <footer className="p-6 text-center text-[#9ca3af] text-sm">
+              <p>Powered by Ethereum & AI | © 2025 YourPlatform</p>
+            </footer>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<GPUPage />);
+  </script>
+</body>
+</html>
